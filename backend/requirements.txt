@@ -1,0 +1,16 @@
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+pydantic==2.10.3
+pydantic-settings==2.6.1
+httpx==0.28.0
+redis==5.2.1
+langgraph==0.2.60
+langchain-anthropic==0.3.0
+langchain-core==0.3.25
+langsmith==0.2.3
+anthropic==0.40.0
+google-auth==2.37.0
+google-auth-httplib2==0.2.0
+google-api-python-client==2.155.0
+slack-sdk==3.33.5
+python-dotenv==1.0.1
