@@ -31,6 +31,7 @@ def _verify_shopify_hmac(body: bytes, hmac_header: str) -> bool:
 async def _run_agent(event_type: str, order_id: str, payload: dict) -> None:
     """Background task: run the LangGraph agent for a webhook event."""
     redis = get_redis()
+    await redis.incr("opspilot:stat:total_events")
     try:
         initial_state: AgentState = {
             "messages": [],
@@ -49,7 +50,13 @@ async def _run_agent(event_type: str, order_id: str, payload: dict) -> None:
             "latency_ms": 0,
             "error": "",
         }
-        await opspilot_graph.ainvoke(initial_state)
+        final_state = await opspilot_graph.ainvoke(initial_state)
+        decision = final_state.get("decision", "")
+        if decision in ("hold", "release", "escalate"):
+            await redis.incr(f"opspilot:stat:total_{decision}")
+        tokens = final_state.get("tokens_used", 0)
+        if tokens:
+            await redis.incrby("opspilot:stat:total_tokens", tokens)
     except Exception as exc:
         # Push to dead-letter queue for inspection
         await redis.lpush(
